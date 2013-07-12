@@ -4,4 +4,4 @@
 
 start() ->
     ok = application:start(ranch),
-    ok = application:start(pig_app).
+    ok = application:start(pig).
