@@ -1,3 +1,3 @@
-easy game server 
+basic erlang game server 
 
-   by cowboy +  phrotebuff + easybuff 
+   base on ranch  protobuf and basicmem 
