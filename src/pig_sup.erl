@@ -25,7 +25,7 @@ start_link() ->
 
 init([]) ->
     ets:new(ets_session, [ordered_set, public, named_table]),
-    ChildSpec = {player_serv, {player, start_link, []}, temporary, brutal_kill, worker, player},
+    ChildSpec = {player_serv, {player, start_link, []}, temporary, brutal_kill, worker, [player]},
     {ok, { {simple_one_for_one, 5, 10}, [ChildSpec]} }.
 
 start_child(SocketPid) ->
