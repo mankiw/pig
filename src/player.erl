@@ -25,7 +25,7 @@
 %% ====================================================================
 
 start_link(SocketPid) ->
-    gen_server:start_link(?MODULE, [], [SocketPid]).
+    gen_server:start_link(?MODULE, [SocketPid], []).
 
 %% ====================================================================
 %% Server functions
