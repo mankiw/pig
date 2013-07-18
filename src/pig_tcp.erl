@@ -106,7 +106,7 @@ recv(Socket, Timeout, PlayerPid) ->
 
 loop(Socket, Timeout, PlayerPid, HeadBinary) ->
     receive
-        {ok, Socket, Data} ->
+        {tcp, Socket, Data} ->
             NewData = <<HeadBinary/binary, Data/binary>>,
             case NewData of
                 <<Length:32, Binary:Length/binary, _RestBinary/binary>> ->
@@ -118,7 +118,8 @@ loop(Socket, Timeout, PlayerPid, HeadBinary) ->
         {send, Data} -> %% 这个地方会要乱收包的超时机制，考虑改成异步的收包方式
             pig_protocol:handle_response(Socket, Data),
             loop(Socket, Timeout, PlayerPid, HeadBinary);
-        _ ->
+        Other ->
+            io:format("receive other data :~w", [Other]),
             pig_protocol:handle_close(Socket)
     after Timeout ->
             io:format("tcp timeout(~w), close it",[Timeout]),

@@ -40,6 +40,7 @@ start_link(SocketPid) ->
 %%          {stop, Reason}
 %% --------------------------------------------------------------------
 init([SocketPid]) ->
+    process_flag(trap_exit, true),
     {ok, #state{socket_pid = SocketPid}}.
 
 %% --------------------------------------------------------------------
@@ -75,8 +76,12 @@ handle_cast({do_send, Packet}, State) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
 handle_info({recevie, Data}, State) ->
+    io:format("recevie Data ~w~n", [Data]),
     ok,
     {noreply, State};
+
+handle_info({'EXIT',_ ,_}, State) ->
+    {stop, normal, state};
 
 handle_info(Info, State) ->
     {noreply, State}.
