@@ -41,6 +41,10 @@
 		non_neg_integer() | binary()}].
 -export_type([opts/0]).
 
+-define(TPC_TIMEOUT_READ_HEAD, 90000). %% 90s：心跳包的1.5倍时间还不发来包，断掉他
+
+-define(TCP_TIMEOUT_READ_BODY, 500). %% 读body给他0.5s中时间,超时说明一次发的包太多了(基本一个大于10k就会超时)
+
 %% @doc Name of this transport, <em>tcp</em>.
 name() -> tcp.
 
@@ -98,18 +102,26 @@ connect(Host, Port, Opts) when is_integer(Port) ->
 
 recv(Socket, Timeout, PlayerPid) ->
     inet:setopts(Socket, [{active, true}]),
-    loop(Socket, Timeout, PlayerPid).
-loop(Socket, Timeout, PlayerPid) ->
+    loop(Socket, Timeout, PlayerPid, <<>>).
+
+loop(Socket, Timeout, PlayerPid, HeadBinary) ->
     receive
         {ok, Socket, Data} ->
-            pig_protocol:handle_request(PlayerPid, Data),
-            loop(Socket, Timeout, PlayerPid);
-        {send, Data} ->
+            NewData = <<HeadBinary/binary, Data/binary>>,
+            case NewData of
+                <<Length:32, Binary:Length/binary, _RestBinary/binary>> ->
+                    pig_protocol:handle_request(PlayerPid, Binary),
+                    loop(Socket, ?TPC_TIMEOUT_READ_HEAD, PlayerPid, <<>>);
+                _ ->
+                    loop(Socket, ?TCP_TIMEOUT_READ_BODY, PlayerPid, NewData)
+            end;
+        {send, Data} -> %% 这个地方会要乱收包的超时机制，考虑改成异步的收包方式
             pig_protocol:handle_response(Socket, Data),
-            loop(Socket, Timeout, PlayerPid);
+            loop(Socket, Timeout, PlayerPid, HeadBinary);
         _ ->
             pig_protocol:handle_close(Socket)
     after Timeout ->
+            io:format("tcp timeout(~w), close it",[Timeout]),
             pig_protocol:handle_close(Socket)
     end.
 
@@ -176,3 +188,4 @@ sockname(Socket) ->
 -spec close(inet:socket()) -> ok.
 close(Socket) ->
 	gen_tcp:close(Socket).
+
