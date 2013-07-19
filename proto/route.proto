@@ -1,0 +1,4 @@
+message route {
+    required int32  proto_number = 1;
+    required bytes  body = 2;
+}
