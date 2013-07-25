@@ -1,6 +1,6 @@
 -module(util).
 
--export([gen_proto/0]).
+-export([gen_proto/0, get_p/1, set_p/2]).
 
 gen_proto() ->
     {ok, Cwd} = file:get_cwd(),
@@ -20,3 +20,14 @@ gen_proto([FileName|RestFiles], ProtoDIR, Option) ->
 		protobuffs_compile:scan_file(ProtoDIR ++ FileName, Option)
     end,
     gen_proto(RestFiles, ProtoDIR, Option).
+
+get_p(Pname) ->
+    case ets:lookup(ets_p, Pname) of
+        [] ->
+            pig_sup:start_db();
+        [{Pname, Pid}] ->
+              Pid
+        end.
+
+set_p(Pname, Pid) ->
+    ets:insert(ets_p, {Pname, Pid}).

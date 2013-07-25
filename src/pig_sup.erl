@@ -4,7 +4,7 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0, start_child/1]).
+-export([start_link/0, start_child/1, start_db/0]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -27,6 +27,11 @@ init([]) ->
     ets:new(ets_session, [ordered_set, public, named_table]),
     ChildSpec = {player_serv, {player, start_link, []}, temporary, brutal_kill, worker, [player]},
     {ok, { {simple_one_for_one, 5, 10}, [ChildSpec]} }.
+
+start_db() ->
+    {ok, C} = supervisor:start_child(pig_sup, []),
+    util:set_p(db, C),
+    C.
 
 start_child(SocketPid) ->
     {ok, Pid} = supervisor:start_child(pig_sup, [SocketPid]),

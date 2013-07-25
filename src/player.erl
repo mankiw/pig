@@ -133,5 +133,18 @@ code_change(OldVsn, State, Extra) ->
 
 login(Body) ->
     LoginRec = route_pb:decode_login(Body),
-    io:format("loginRec is ~w~n", [LoginRec]).
+    Account = LoginRec#login.account,
+    PassWord = LoginRec#login.password,
+    io:format("loginRec is ~w~n", [LoginRec]),
+    Key = "account:"++Account++":pwd",
+    Pwd = list_to_binary(PassWord),
+    Pid = util:get_p(db),
+    case eredis:q(Pid, ["GET", Key]) of
+       {ok, Pwd} ->
+          true;
+       _ ->
+          false
+    end.
+
+        
     
