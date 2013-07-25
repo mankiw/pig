@@ -18,7 +18,9 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--record(state, {socket_pid}).
+-include("route_pb.hrl").
+
+-record(state, {socket_pid, is_login = false}).
 
 %% ====================================================================
 %% External functions
@@ -75,11 +77,33 @@ handle_cast({do_send, Packet}, State) ->
 %%          {noreply, State, Timeout} |
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
-handle_info({recevie, Data}, State) ->
+handle_info({recevie, Data}, #state{is_login = false} = State) ->
     io:format("recevie Data ~w~n", [Data]),
-    ok,
-    {noreply, State};
+    RouteRec = route_pb:decode_route(Data),
+    case RouteRec#route.proto_number of
+      10000 ->
+         NewState = 
+           case login(RouteRec#route.body) of
+              ok ->
+                 send_login_success_to_client,
+                 State#state{is_login = true};
+              failed ->
+                 send_login_failed_to_client,
+                 State;
+              not_register ->
+                 send_login_failed_to_client,
+                 State
+           end;
+      _ ->
+        NewState = State
+    end,
+    {noreply, NewState};
 
+handle_info({recevie, Data}, #state{is_login = true} = State) ->
+    io:format("recevie Data ~w~n", [Data]),
+    RouteRec = route_pb:decode_route(Data),
+    io:format("routeRec is ~s", [RouteRec]),
+    {noreply, State};
 handle_info({'EXIT',_ ,_}, State) ->
     {stop, normal, state};
 
@@ -107,4 +131,7 @@ code_change(OldVsn, State, Extra) ->
 %% --------------------------------------------------------------------
 
 
-
+login(Body) ->
+    LoginRec = route_pb:decode_login(Body),
+    io:format("loginRec is ~w~n", [LoginRec]).
+    
