@@ -4,4 +4,5 @@
 
 start() ->
     ok = application:start(ranch),
+    util:gen_proto(),
     ok = application:start(pig).
