@@ -24,7 +24,9 @@ gen_proto([FileName|RestFiles], ProtoDIR, Option) ->
 get_p(Pname) ->
     case ets:lookup(ets_p, Pname) of
         [] ->
-            pig_sup:start_db();
+            {ok, Pid} = pig_sup:start_db(),
+			set_p(db, Pid),
+			Pid;
         [{Pname, Pid}] ->
               Pid
         end.

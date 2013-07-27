@@ -87,7 +87,7 @@ handle_info({recevie, Data}, #state{is_login = false} = State) ->
               ok ->
                  send_login_success_to_client,
                  State#state{is_login = true};
-              failed ->
+              false ->
                  send_login_failed_to_client,
                  State;
               not_register ->

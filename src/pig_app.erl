@@ -18,4 +18,4 @@ stop(_State) ->
     ok.
 
 init_ets() ->
-    ets:new(ets_p, [named_table, set, {keypos,1}]).
+    ets:new(ets_p, [named_table, set,public,  {keypos,1}]).

@@ -1,10 +1,10 @@
 
--module(pig_sup).
+-module(player_sup).
 
 -behaviour(supervisor).
 
 %% API
--export([start_link/0, start_db/0]).
+-export([start_link/0, start_child/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -24,11 +24,9 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    ets:new(ets_session, [ordered_set, public, named_table]),
-    ChildSpec1 = {player_sup, {player_sup, start_link, []}, temporary, brutal_kill, supervisor, [player_sup]},
-    {ok, { {one_for_one, 5, 10}, [ChildSpec1]}}.
+    ChildSpec = {player_serv, {player, start_link, []}, temporary, brutal_kill, worker, [player]},
+    {ok, {{simple_one_for_one, 5, 10}, [ChildSpec]} }.
 
-
-start_db() ->
-	ChildSpec = ?CHILD(eredis, worker),
-	supervisor:start_child(?MODULE, ChildSpec).
+start_child(SocketPid) ->
+    {ok, Pid} = supervisor:start_child(player_sup, [SocketPid]),
+    Pid.

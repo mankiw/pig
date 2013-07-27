@@ -11,7 +11,7 @@ start_link(Ref, Socket, Transport, Opts) ->
 
 init(Ref, Socket, Transport, _Opts = []) ->
 	ok = ranch:accept_ack(Ref),
-    PlayerPid = pig_sup:start_child(self()),
+    PlayerPid = player_sup:start_child(self()),
     link(PlayerPid),
     Transport:recv(Socket, ?RECEVIE_TIMEOUT, PlayerPid).
 
@@ -19,6 +19,7 @@ handle_response(Socket, Packet) ->
     gen_tcp:send(Socket, Packet).
 
 handle_request(PlayerPid, Data) ->
+	io:format("receive data ~w", [Data]),
     PlayerPid ! {recevie, Data},
     ok.
 
