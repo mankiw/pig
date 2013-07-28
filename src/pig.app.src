@@ -9,5 +9,14 @@
                   ranch
                  ]},
   {mod, { pig_app, []}},
-  {env, []}
+  {env, [
+	{lager, [
+  	{handlers, [
+    		{colored, true},
+    		{lager_console_backend, info},
+   		{lager_file_backend, [{file, "../log/error.log"}, {level, error}]},
+    		{lager_file_backend, [{file, "../log/console.log"}, {level, info}]}
+		  ]}
+		]}
+	]}
  ]}.

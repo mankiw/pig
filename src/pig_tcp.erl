@@ -19,6 +19,8 @@
 %% @see gen_tcp
 -module(pig_tcp).
 
+-include("common.hrl").
+
 -export([name/0]).
 -export([messages/0]).
 -export([listen/1]).
@@ -119,10 +121,10 @@ loop(Socket, Timeout, PlayerPid, HeadBinary) ->
             pig_protocol:handle_response(Socket, Data),
             loop(Socket, Timeout, PlayerPid, HeadBinary);
         Other ->
-            io:format("receive other data :~w", [Other]),
+            ?ERR("receive other data :~w", [Other]),
             pig_protocol:handle_close(Socket)
     after Timeout ->
-            io:format("tcp timeout(~w), close it",[Timeout]),
+            ?ERR("tcp timeout(~w), close it",[Timeout]),
             pig_protocol:handle_close(Socket)
     end.
 

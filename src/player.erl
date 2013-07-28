@@ -10,7 +10,7 @@
 %% --------------------------------------------------------------------
 %% Include files
 %% --------------------------------------------------------------------
-
+-include("common.hrl").
 %% --------------------------------------------------------------------
 %% External exports
 -export([start_link/1]).
@@ -78,7 +78,7 @@ handle_cast({do_send, Packet}, State) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
 handle_info({recevie, Data}, #state{is_login = false} = State) ->
-    io:format("recevie Data ~w~n", [Data]),
+    ?INFO("recv data ~w", [Data]),
     RouteRec = route_pb:decode_route(Data),
     case RouteRec#route.proto_number of
       10000 ->
@@ -100,9 +100,8 @@ handle_info({recevie, Data}, #state{is_login = false} = State) ->
     {noreply, NewState};
 
 handle_info({recevie, Data}, #state{is_login = true} = State) ->
-    io:format("recevie Data ~w~n", [Data]),
     RouteRec = route_pb:decode_route(Data),
-    io:format("routeRec is ~s", [RouteRec]),
+    ?INFO("routeRec is ~s", [RouteRec]),
     {noreply, State};
 handle_info({'EXIT',_ ,_}, State) ->
     {stop, normal, state};
@@ -135,7 +134,7 @@ login(Body) ->
     LoginRec = route_pb:decode_login(Body),
     Account = LoginRec#login.account,
     PassWord = LoginRec#login.password,
-    io:format("loginRec is ~w~n", [LoginRec]),
+    ?INFO("loginRec is ~w~n", [LoginRec]),
     Key = "account:"++Account++":pwd",
     Pwd = list_to_binary(PassWord),
     Pid = util:get_p(db),
